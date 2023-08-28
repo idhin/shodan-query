@@ -1,12 +1,12 @@
 #!/bin/bash
-start_page=362
+start_page=1
 for ((i=start_page; i<=3000; i++))
 do
     # Menjalankan perintah Python dan menyimpan hasilnya dalam variabel output
-    output=$(python3 Shodan_So.py --search "queymudisini" --list_ip_port --page $i | tee -a output.txt)
+    output=$(python3 Shodan_So.py --search "querymu" --list_ip_port --page $i | tee -a output.txt)
     
-    # Memeriksa apakah output mengandung "Shodan API Error: Unable to parse JSON response"
-    if echo "$output" | grep -q "Shodan API Error: Unable to parse JSON response"; then
+    # Memeriksa apakah output mengandung pesan error terkait koneksi atau parsing JSON
+    if echo "$output" | grep -q -E "Shodan API Error: (Unable to parse JSON response|Unable to connect to Shodan)"; then
         echo "Shodan API Error terdeteksi, menunggu 3 detik..."
         sleep 3
         continue
