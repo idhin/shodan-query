@@ -1,4 +1,4 @@
-##tools buat gabungin semua IP didalam 1 folder ke dalam 1 file
+##tools buat gabungin semua IP didalam 1 folder ke dalam 1 files
 import os
 
 def process_line(line):
