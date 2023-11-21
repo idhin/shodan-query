@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# coding=utf-8
+# Shodan_So - By Zev3n
+# THanks to the legend Hood3dRob1n & Lucifer HR
+
+# in case you got shodan error use command below
+# pip install shodan netaddr
+# This is a free API key for you =>  api_key = "pHHlgpFt8Ka3Stb5UlTxcaEwciOeF2QM"
+# You can change the key ;)
+
+
 class bcolors:
     HEADER = '\033[1;36m'
     OKWHITE = "\033[0;37m"
@@ -89,7 +100,7 @@ def cli_parser():
 def create_shodan_object():
     # Add your shodan API key here
     # Free api_key(Some functions are restricted)
-    api_key = "taroapikeynyadisini"
+    api_key = "#"
     shodan_object = shodan.Shodan(api_key)
 
     return shodan_object
@@ -143,7 +154,7 @@ Operating System: {}""".format(host['ip_str'], host.get('isp', 'n/a'), host.get(
 
 def shodan_ip_search(shodan_search_object, shodan_search_ip, input_file_ips, search_history, list_port):
 
-    # title()
+    title()
     info = False
     serial_number = 1
     if shodan_search_ip is not False:
@@ -176,75 +187,73 @@ def shodan_ip_search(shodan_search_object, shodan_search_ip, input_file_ips, sea
             host_print(shodan_search_object, ip,
                        search_history, serial_number, list_port, info)
 
-        except shodan.exception.APIError as e:
-            if "Invalid API key" in str(e):
+        except Exception as e:
+            if str(e).strip() == "Invalid API key":
                 print("{}[!] You provided an invalid API Key!\n[!] Please provide a valid API Key and re-run!{}".format(
                     bcolors.FAIL, bcolors.ENDC))
                 sys.exit()
-            elif "No information available for that IP" in str(e):
+            elif str(e).strip() == "No information available for that IP.":
                 print(
-                    "{}[-] No information on Shodan about {}{}".format(bcolors.WARNING, ip, bcolors.ENDC))
+                    "{}[-]No information on Shodan about {}{}".format(bcolors.WARNING, ip, bcolors.ENDC))
             else:
-                print("{}[!] Unknown Shodan API Error: {}{}".format(bcolors.FAIL,
-                                                                    str(e), bcolors.ENDC))
-        except Exception as e:
-            print("{}[!] Unknown Error: {}{}".format(bcolors.FAIL,
-                                                     str(e), bcolors.ENDC))
+                print("{}[!]Unknown Error: {}{}".format(bcolors.FAIL,
+                                                        str(e), bcolors.ENDC))
         else:
             serial_number += 1
 
-def shodan_string_search(shodan_search_object, shodan_search_string, hostname_only, page_to_return, list_ip, list_port):
-    try:
-        # title()
-        # print("[*] Searching Shodan...\n")
-        # Time to search Shodan
-        results = shodan_search_object.search(shodan_search_string, page=page_to_return)
 
-        # print("Total number of results back: " + str(results['total']) + "\n\n")
-        result_count = 100 * (int(page_to_return) - 1)
-        
-        for result in results['matches']:
-            try:
-                if hostname_only:
-                    hostnames = result.get('hostnames', [])
-                    if not hostnames:
-                        continue
+def shodan_string_search(shodan_search_object, shodan_search_string,
+                         hostname_only, page_to_return, list_ip, list_port):
 
-                    result_count += 1
-                    if list_ip or list_port:
+    # title()
+    # print("[*] Searching Shodan...\n")
+    # Time to search Shodan
+    results = shodan_search_object.search(
+        shodan_search_string, page=page_to_return)
+
+    # print("Total number of results back: " +
+    #       str(results['total']) + "\n\n")
+    result_count = 100 * (int(page_to_return) - 1)
+    for result in results['matches']:
+        if hostname_only:
+            for item in result['hostnames']:
+                result_count += 1
+                if list_ip or list_port:
+                    if list_port:
+
                         ip_port_list(result, True, en_hostname=True, flag=True)
-                        continue
+                    else:
+                        ip_port_list(result, False, en_hostname=True)
+                    continue
 
-                    print("*** RESULT {} ***".format(result_count))
-                    print("IP Address: " + result['ip_str'])
-                    if result['timestamp'] is not None:
-                        print("Last updated: " + result['timestamp'])
-                    if result['port'] is not None:
-                        print("Port: " + str(result['port']))
-                    print("Data: " + result['data'])
-                    for item in hostnames:
-                        print("Hostname: " + item)
-                    print("\n\n")
+                print("*** RESULT {0}***".format(result_count))
+                print("IP Address: " + result['ip_str'])
+                if result['timestamp'] is not None:
+                    print("Last updated: " + result['timestamp'])
+                if result['port'] is not None:
+                    print("Port: " + str(result['port']))
+                print("Data: " + result['data'])
+                for item in result['hostnames']:
+                    print("Hostname: " + item)
+                print("\n\n")
+
+        else:
+            result_count += 1
+            if list_ip or list_port:
+                if list_port:
+                    ip_port_list(result, True, flag=True)
                 else:
-                    result_count += 1
-                    if list_ip or list_port:
-                        ip_port_list(result, True, flag=True)
-                        continue
+                    ip_port_list(result, False)
+                continue
+            print("*** RESULT %s***" % (result_count))
+            print("IP Address: " + result['ip_str'])
+            if result['timestamp'] is not None:
+                print("Last updated: " + result['timestamp'])
+            if result['port'] is not None:
+                print("Port: " + str(result['port']))
+            print("Data: " + result['data'])
+            print("\n\n")
 
-                    print("*** RESULT {} ***".format(result_count))
-                    print("IP Address: " + result['ip_str'])
-                    if result['timestamp'] is not None:
-                        print("Last updated: " + result['timestamp'])
-                    if result['port'] is not None:
-                        print("Port: " + str(result['port']))
-                    print("Data: " + result['data'])
-                    print("\n\n")
-            except Exception as e:
-                print("{}[!] Error processing result: {}{}".format(bcolors.FAIL, str(e), bcolors.ENDC))
-    except shodan.exception.APIError as e:
-        print("{}[!] Shodan API Error: {}{}".format(bcolors.FAIL, str(e), bcolors.ENDC))
-    except Exception as e:
-        print("{}[!] Unknown Error: {}{}".format(bcolors.FAIL, str(e), bcolors.ENDC))
 def title():
     os.system('clear')
     print("\n" + bcolors.HEADER +
